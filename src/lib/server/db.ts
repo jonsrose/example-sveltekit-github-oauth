@@ -1,28 +1,20 @@
-import sqlite3 from "better-sqlite3";
+import { Pool } from 'pg';
 import { SyncDatabase } from "@pilcrowjs/db-query";
-
 import type { SyncAdapter } from "@pilcrowjs/db-query";
 
-const sqlite = sqlite3("sqlite.db");
+const pool = new Pool({
+	// Your PostgreSQL connection details
+	connectionString: process.env.DATABASE_URL
+});
 
-const adapter: SyncAdapter<sqlite3.RunResult> = {
+const adapter: SyncAdapter<any> = {
 	query: (statement: string, params: unknown[]): unknown[][] => {
-		const result = sqlite
-			.prepare(statement)
-			.raw()
-			.all(...params);
-		return result as unknown[][];
+		const result = pool.query(statement, params);
+		return result.rows;
 	},
-	execute: (statement: string, params: unknown[]): sqlite3.RunResult => {
-		const result = sqlite.prepare(statement).run(...params);
-		return result;
+	execute: (statement: string, params: unknown[]): any => {
+		return pool.query(statement, params);
 	}
 };
 
-class Database extends SyncDatabase<sqlite3.RunResult> {
-	public inTransaction(): boolean {
-		return sqlite.inTransaction;
-	}
-}
-
-export const db = new Database(adapter);
+export const db = new SyncDatabase(adapter);

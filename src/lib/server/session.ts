@@ -9,9 +9,12 @@ export function validateSessionToken(token: string): SessionValidationResult {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const row = db.queryOne(
 		`
-SELECT session.id, session.user_id, session.expires_at, user.id, user.github_id, user.email, user.username FROM session
-INNER JOIN user ON session.user_id = user.id
-WHERE session.id = ?
+SELECT 
+  session.id, session.user_id, session.expires_at, 
+  "user".id, "user".github_id, "user".email, "user".username 
+FROM session
+INNER JOIN "user" ON session.user_id = "user".id
+WHERE session.id = $1
 `,
 		[sessionId]
 	);
@@ -86,7 +89,7 @@ export function createSession(token: string, userId: number): Session {
 		userId,
 		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
 	};
-	db.execute("INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)", [
+	db.execute("INSERT INTO session (id, user_id, expires_at) VALUES ($1, $2, $3)", [
 		session.id,
 		session.userId,
 		Math.floor(session.expiresAt.getTime() / 1000)
