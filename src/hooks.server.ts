@@ -46,4 +46,17 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handle = sequence(rateLimitHandle, authHandle);
+export const handle = sequence(
+	rateLimitHandle,
+	async ({ event, resolve }) => {
+		const sessionToken = event.cookies.get("session");
+		if (sessionToken) {
+			const { session, user } = await validateSessionToken(sessionToken);
+			if (session && user) {
+				event.locals.user = user;
+				event.locals.session = session;
+			}
+		}
+		return resolve(event);
+	}
+);

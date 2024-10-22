@@ -1,7 +1,7 @@
 import { db } from "./db";
 
-export function createUser(githubId: number, email: string, username: string): User {
-	const row = db.queryOne("INSERT INTO user (github_id, email, username) VALUES (?, ?, ?) RETURNING user.id", [
+export async function createUser(githubId: number, email: string, username: string): Promise<User> {
+	const row = await db.queryOne("INSERT INTO user (github_id, email, username) VALUES (?, ?, ?) RETURNING user.id", [
 		githubId,
 		email,
 		username
@@ -18,8 +18,8 @@ export function createUser(githubId: number, email: string, username: string): U
 	return user;
 }
 
-export function getUserFromGitHubId(githubId: number): User | null {
-	const row = db.queryOne("SELECT id, github_id, email, username FROM user WHERE github_id = ?", [githubId]);
+export async function getUserFromGitHubId(githubId: number): Promise<User | null> {
+	const row = await db.queryOne("SELECT id, github_id, email, username FROM user WHERE github_id = ?", [githubId]);
 	if (row === null) {
 		return null;
 	}
