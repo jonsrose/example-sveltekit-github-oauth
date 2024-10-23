@@ -42,10 +42,13 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const githubUserId = userParser.getNumber("id");
 	const username = userParser.getString("login");
 
-	const existingUser = getUserFromGitHubId(githubUserId);
+	const existingUser = await getUserFromGitHubId(githubUserId);
 	if (existingUser !== null) {
 		const sessionToken = generateSessionToken();
-		const session = createSession(sessionToken, existingUser.id);
+		const session = await createSession(existingUser);
+		if (session === null) {
+			return new Response("Failed to create session", { status: 500 });
+		}
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 		return new Response(null, {
 			status: 302,
@@ -79,9 +82,12 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		});
 	}
 
-	const user = createUser(githubUserId, email, username);
+	const user = await createUser(githubUserId, email, username);
 	const sessionToken = generateSessionToken();
-	const session = createSession(sessionToken, user.id);
+	const session = await createSession(user); // Pass 'user' instead of 'sessionToken'
+	if (session === null) {
+		return new Response("Failed to create session", { status: 500 });
+	}
 	setSessionTokenCookie(event, sessionToken, session.expiresAt);
 	return new Response(null, {
 		status: 302,

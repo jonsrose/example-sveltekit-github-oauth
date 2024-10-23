@@ -82,19 +82,27 @@ export function generateSessionToken(): string {
 	return token;
 }
 
-export async function createSession(token: string, userId: number): Promise<Session> {
-	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const session: Session = {
+export async function createSession(user: User): Promise<Session> {
+	if (!user.id) {
+		throw new Error("Cannot create session for user without an id");
+	}
+
+	const sessionId = crypto.randomUUID();
+	const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+
+	await db.execute(
+		`
+		INSERT INTO session (id, user_id, expires_at)
+		VALUES ($1, $2, $3)
+		`,
+		[sessionId, user.id, expiresAt]
+	);
+
+	return {
 		id: sessionId,
-		userId,
-		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+		userId: user.id,
+		expiresAt
 	};
-	await db.execute("INSERT INTO session (id, user_id, expires_at) VALUES ($1, $2, $3)", [
-		session.id,
-		session.userId,
-		Math.floor(session.expiresAt.getTime() / 1000)
-	]);
-	return session;
 }
 
 export interface Session {

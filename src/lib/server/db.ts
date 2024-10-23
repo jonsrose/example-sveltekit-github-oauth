@@ -10,11 +10,21 @@ const pool = new Pool({
 
 const adapter: AsyncAdapter<any> = {
 	query: async (statement: string, params: unknown[]): Promise<unknown[][]> => {
-		const result = await pool.query(statement, params);
+		console.log("Executing SQL:", statement, "with params:", params);
+		const result = await pool.query({
+			text: statement,
+			values: params,
+			rowMode: 'array'
+		});
 		return result.rows;
 	},
 	execute: async (statement: string, params: unknown[]): Promise<any> => {
-		return pool.query(statement, params);
+		console.log("Executing SQL:", statement, "with params:", params);
+		return pool.query({
+			text: statement,
+			values: params,
+			rowMode: 'array'
+		});
 	}
 };
 
