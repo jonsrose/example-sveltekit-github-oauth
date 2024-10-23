@@ -3,7 +3,7 @@ import { db } from "./db";
 export async function createUser(githubId: number, email: string, username: string): Promise<User> {
 	const row = await db.queryOne(
 		`
-		INSERT INTO "user" (github_id, email, username) VALUES ($1, $2, $3) RETURNING "user".id
+		INSERT INTO app_user (github_id, email, username) VALUES ($1, $2, $3) RETURNING app_user.id
 		`,
 		[githubId, email, username]
 	);
@@ -23,7 +23,7 @@ export async function getUserFromGitHubId(githubId: number): Promise<User | null
 	const row = await db.queryOne(
 		`
 		SELECT id, github_id, email, username
-		FROM "user"
+		FROM app_user
 		WHERE github_id = $1
 		`,
 		[githubId]
@@ -32,12 +32,6 @@ export async function getUserFromGitHubId(githubId: number): Promise<User | null
 	if (row === null) {
 		return null;
 	}
-
-	console.log("row", row);
-	console.log("row.number(0)", row.number(0));
-	console.log("row.number(1)", row.number(1));
-	console.log("row.string(2)", row.string(2));
-	console.log("row.string(3)", row.string(3));
 
 	const user: User = {
 		id: row.number(0),

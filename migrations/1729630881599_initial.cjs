@@ -9,7 +9,7 @@ exports.shorthands = undefined;
  * @returns {Promise<void> | void}
  */
 exports.up = (pgm) => {
-  pgm.createTable('user', {
+  pgm.createTable('app_user', {
     id: 'id',
     github_id: { type: 'integer', notNull: true },
     email: { type: 'varchar(255)', notNull: true },
@@ -21,10 +21,10 @@ exports.up = (pgm) => {
     user_id: {
       type: 'integer',
       notNull: true,
-      references: '"user"',
+      references: '"app_user"',
       onDelete: 'CASCADE'
     },
-    expires_at: { type: 'bigint', notNull: true }
+    expires_at: { type: 'timestamp', notNull: true }
   });
 };
 
@@ -35,5 +35,5 @@ exports.up = (pgm) => {
  */
 exports.down = (pgm) => {
   pgm.dropTable('session');
-  pgm.dropTable('user');
+  pgm.dropTable('app_user');
 };

@@ -45,7 +45,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const existingUser = await getUserFromGitHubId(githubUserId);
 	if (existingUser !== null) {
 		const sessionToken = generateSessionToken();
-		const session = await createSession(existingUser);
+		const session = await createSession(sessionToken, existingUser.id);
 		if (session === null) {
 			return new Response("Failed to create session", { status: 500 });
 		}
@@ -84,7 +84,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 	const user = await createUser(githubUserId, email, username);
 	const sessionToken = generateSessionToken();
-	const session = await createSession(user); // Pass 'user' instead of 'sessionToken'
+	const session = await createSession(sessionToken, user.id); // Pass 'user' instead of 'sessionToken'
 	if (session === null) {
 		return new Response("Failed to create session", { status: 500 });
 	}

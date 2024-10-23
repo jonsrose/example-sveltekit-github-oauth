@@ -11,9 +11,9 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 		`
 SELECT 
   session.id, session.user_id, session.expires_at, 
-  "user".id, "user".github_id, "user".email, "user".username 
+  app_user.id, app_user.github_id, app_user.email, app_user.username 
 FROM session
-INNER JOIN "user" ON session.user_id = "user".id
+INNER JOIN app_user ON session.user_id = app_user.id
 WHERE session.id = $1
 `,
 		[sessionId]
@@ -25,7 +25,7 @@ WHERE session.id = $1
 	const session: Session = {
 		id: row.string(0),
 		userId: row.number(1),
-		expiresAt: new Date(row.number(2) * 1000)
+		expiresAt: new Date(row.get(2) as Date)
 	};
 	const user: User = {
 		id: row.number(3),
@@ -82,12 +82,8 @@ export function generateSessionToken(): string {
 	return token;
 }
 
-export async function createSession(user: User): Promise<Session> {
-	if (!user.id) {
-		throw new Error("Cannot create session for user without an id");
-	}
-
-	const sessionId = crypto.randomUUID();
+export async function createSession(token: string, userId: number): Promise<Session> {
+	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
 	await db.execute(
@@ -95,12 +91,12 @@ export async function createSession(user: User): Promise<Session> {
 		INSERT INTO session (id, user_id, expires_at)
 		VALUES ($1, $2, $3)
 		`,
-		[sessionId, user.id, expiresAt]
+		[sessionId, userId, expiresAt]
 	);
 
 	return {
 		id: sessionId,
-		userId: user.id,
+		userId: userId,
 		expiresAt
 	};
 }
