@@ -34,12 +34,12 @@ WHERE session.id = $1
 		username: row.string(6)
 	};
 	if (Date.now() >= session.expiresAt.getTime()) {
-		await db.execute("DELETE FROM session WHERE id = ?", [session.id]);
+		await db.execute("DELETE FROM session WHERE id = $1", [session.id]);
 		return { session: null, user: null };
 	}
 	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
 		session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-		await db.execute("UPDATE session SET expires_at = ? WHERE session.id = ?", [
+		await db.execute("UPDATE session SET expires_at = $1 WHERE session.id = $2", [
 			Math.floor(session.expiresAt.getTime() / 1000),
 			session.id
 		]);
@@ -48,11 +48,11 @@ WHERE session.id = $1
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
-	await db.execute("DELETE FROM session WHERE id = ?", [sessionId]);
+	await db.execute("DELETE FROM session WHERE id = $1", [sessionId]);
 }
 
 export async function invalidateUserSessions(userId: number): Promise<void> {
-	await db.execute("DELETE FROM session WHERE user_id = ?", [userId]);
+	await db.execute("DELETE FROM session WHERE user_id = $1", [userId]);
 }
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date): void {

@@ -4,6 +4,7 @@ import { generateState } from "arctic";
 import type { RequestEvent } from "./$types";
 
 export function GET(event: RequestEvent): Response {
+	console.log('GitHub login route hit');  // Add this line
 	const state = generateState();
 	const url = github.createAuthorizationURL(state, ["user:email"]);
 

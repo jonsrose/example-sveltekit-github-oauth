@@ -1,2 +1,2 @@
 <h1>Sign in</h1>
-<a href="/login/github">Sign in with GitHub</a>
+<a href="/login/github" data-sveltekit-reload>Sign in with GitHub</a>

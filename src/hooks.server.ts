@@ -26,28 +26,25 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-// const authHandle: Handle = async ({ event, resolve }) => {
-// 	const token = event.cookies.get("session") ?? null;
-// 	if (token === null) {
-// 		event.locals.user = null;
-// 		event.locals.session = null;
-// 		return resolve(event);
-// 	}
-
-// 	const { session, user } = await validateSessionToken(token);
-// 	if (session !== null) {
-// 		setSessionTokenCookie(event, token, session.expiresAt);
-// 	} else {
-// 		deleteSessionTokenCookie(event);
-// 	}
-
-// 	event.locals.session = session;
-// 	event.locals.user = user;
-// 	return resolve(event);
-// };
+const csrfProtectionHandle: Handle = async ({ event, resolve }) => {
+	if (event.request.method !== "GET" && event.request.method !== "OPTIONS") {
+		const origin = event.request.headers.get("Origin");
+		// Allow both www and non-www versions
+		const allowedOrigins = [
+			'https://www-dev.aiutils.site',
+			'https://aiutils.site'
+		];
+		
+		if (origin === null || !allowedOrigins.includes(origin)) {
+			return new Response("Forbidden", { status: 403 });
+		}
+	}
+	return resolve(event);
+};
 
 export const handle = sequence(
 	rateLimitHandle,
+	csrfProtectionHandle,
 	async ({ event, resolve }) => {
 		const sessionToken = event.cookies.get("session");
 		if (sessionToken) {
